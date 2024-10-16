@@ -1,0 +1,42 @@
+name: Workflow for CI with GitHub Actions
+
+on:
+    push:
+        branches:
+            - master
+
+env:
+    baseUrl: http://localhost:3000
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Install Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+
+            - name: Install Dependencies
+              run: npm install
+
+            - name: Build project
+              run: npm run build
+
+            - name: Checkout TypeScript Errors
+              run: npm i -g typescript && tsc
+
+            - name: Checkout ESLint Errors
+              run: npm run eslint
+
+            - name: Launch Unit Test & Integration Test
+              run: npm run test
+
+            - name: Save build data
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build
+                  path: .next
