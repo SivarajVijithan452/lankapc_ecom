@@ -1,24 +1,23 @@
-name: Workflow for CD Delivery for testers with github actions
+name: Workflow for CD Delivery for Testers with GitHub Actions
 
 on:
     release:
         types: [published]
-    workflow_dispatch: # trigger the worflow manually
+    workflow_dispatch: # Trigger the workflow manually
             
 env:
+    # These secrets must be created in the GitHub repository 
+    # Go to your GitHub repository - Go to Settings - Select Actions secrets - Create  
 
-    # These secrets key must be created on github repository 
-        #Go to your github repository - Go to Settings - Select Actions secrets - Create  
-
-    REGISTRY: ghcr.io #github container repository  
+    REGISTRY: ghcr.io # GitHub Container Registry  
     IMAGE_NAME: ${{ github.actor }}/lankapc_ecom_docker_image:latest
 
 jobs:
     Deploy:
-        name: Deliver docker image to Container registry
+        name: Deliver Docker image to Container Registry
         runs-on: ubuntu-latest
 
-        #Add rights to create image on registry
+        # Add rights to create image on registry
         permissions:
           packages: write
           contents: read
@@ -32,28 +31,28 @@ jobs:
           - name: Install Node
             uses: actions/setup-node@v4
             with:
-               node-version: 20.x
+              node-version: 20.x
 
           - name: Install Dependencies
             run: npm install
 
-          - name: Build project
+          - name: Build Project
             run: npm run build
 
-          - name: Log in the container registry 
-            uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+          - name: Log in to the Container Registry 
+            uses: docker/login-action@v2 # Updated to latest version
             with:
               registry: ${{ env.REGISTRY }}  
               username: ${{ github.actor }} 
               password: ${{ secrets.GITHUB_TOKEN }}
               
-          - name: Extract metadata for docker
+          - name: Extract Metadata for Docker
             id: meta
-            uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+            uses: docker/metadata-action@v4 # Updated to latest version
             with:
-              images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+              images: ${{ env.REGISTRY }}/${{ github.actor }}/lankapc_ecom_docker_image # Ensure the name is lowercase
 
           - name: Publish
             run: |
-                   docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-                   docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+                docker build . --tag ${{ env.REGISTRY }}/${{ github.actor }}/lankapc_ecom_docker_image:latest
+                docker push ${{ env.REGISTRY }}/${{ github.actor }}/lankapc_ecom_docker_image:latest
